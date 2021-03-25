@@ -1,3 +1,6 @@
+library("readxl")
+
+#Creacion de una funcion de hombro izquierdo
 leftShoulderFunction <- function(a1,a2)
 {
   leftShoulder <- function(x)
@@ -15,7 +18,10 @@ leftShoulderFunction <- function(a1,a2)
       return(0)
     }
   }
+  return(leftShoulder)
 }
+
+#Creacion de una funcion de hombro derecho
 rightShoulderFunction <- function(a1,a2)
 {
   rightShoulder <- function(x)
@@ -33,9 +39,10 @@ rightShoulderFunction <- function(a1,a2)
       return(1)
     }
   }
+  return(rightShoulder)
 }
 
-
+#Creacion de una funcion trapezoidal
 trapezoidalFunction <- function(a1,a2,a3,a4)
 {
   trapezoidal <- function(x)
@@ -56,50 +63,80 @@ trapezoidalFunction <- function(a1,a2,a3,a4)
     {
       return(0)
     }
-    
-   # ifelse(a1 <= x & x <= a2,
-  #         (x-a1)/(a2-a1),
-    #  ifelse(a3 >= x & x <= a4),
-   #       (a4-x)/(a4-a3),
-  #    0)
   }
   return(trapezoidal)
 }
 
-a1= 0
-a2= 40
-a3 =60
-a4= 100
-
-trapezoidal <- trapezoidalFunction(a1,a2,a3,a4)
-
-trapezoidal(30)
-
-trapezoidal(80)
+# Leer datos de excel
+datos <- read_excel("indicadores\ 2020.xlsx")
 
 
+# Leer las columnas de expectativa de vida saludable y corrupcion
+expectativa <-  datos$`Healthy life expectancy`
+percepcionCorrupcion <- datos$`Perceptions of corruption`
 
-muestra = seq(-10,110, length.out =1000)
-muestra
+#Sacar los minimos y los maximos de la expectativa de vida saludable 
+expectativaMinima <- min(expectativa)
+expectativaMaxima <- max(expectativa)
 
-res=sapply(muestra, trapezoidal)
-plot(res~muestra, type='l')
-
-trapezoidal2 <- trapezoidalFunction(0,0,0,50)
-
-plot(sapply(muestra, trapezoidal2)~muestra, type='l')
-
-
-trapezoidal3 <-  trapezoidalFunction(50,100,100,100)
+#Sacar los minimos y los maximos de la percepción de corrupcion
+percepcionMinima <- min(percepcionCorrupcion)
+percepcionMaxima <- max(percepcionCorrupcion)
 
 
-hombroIzquierdo <- leftShoulderFunction(0,50)
-hombroDerecho <- rightShoulderFunction(50,100)
+crearFuncionTrapezoidal <- function(minimo, maximo)
+{
+  # Creacion de la funcion trapezoidal
+  
+  # Se crean los limites, se crean 6 intervalos iguales
+  # Los grados de pertenencia crecen del primer al tercer intervalo
+  # Pertenecen igual del tercer al cuarto intervalo
+  # Los grados de pertencia decrecen del cuarto al ultimo intervalo
+  limites <-  seq(minimo,maximo,length.out = 6)
+  trapezoidal <- trapezoidalFunction(limites[1], limites[3], limites[4], limites[6])
+  return(trapezoidal)
+}
 
-plot(sapply(muestra, hombroIzquierdo)~muestra, type='l')
-lines(sapply(muestra, hombroDerecho)~muestra)
-lines(res~muestra, type='l')
+crearFuncionHombroIzquierdo <- function(minimo, maximo)
+{
+  #Crear hombro izquierdo desde que decrece 
+  #del minimo hasta la mitad del intervalo
+  puntoMedio <- (minimo + maximo)/2
+  hombroIzquierdo <- leftShoulderFunction(minimo, puntoMedio)
+  return(hombroIzquierdo)
+}
+
+crearFuncionHombroDerecho <- function(minimo, maximo)
+{
+  #Crear hombro derecho desde que crece 
+  #mitad hasta el final del intervalo
+  puntoMedio <- (minimo + maximo)/2
+  hombroDerecho <- rightShoulderFunction(puntoMedio, maximo)
+  return(hombroDerecho)
+}
 
 
+# Funcion para crear los conjuntos difusos 
+crearConjuntoDifusoDeTresVariables <- function(minimo, maximo)
+{
+  trapezoidal <- crearFuncionTrapezoidal(minimo, maximo)
+  hombroIzquierdo <- crearFuncionHombroIzquierdo(minimo, maximo)
+  hombroDerecho <- crearFuncionHombroDerecho(minimo, maximo)
+  
+  #Graficar los datos 
+  muestra = seq(minimo, maximo, length.out =1000)
+  
+  # Graficacion de los conjuntos
+  plot(sapply(muestra, hombroIzquierdo) ~ muestra,  main="Grados de pertenencia en el universo",
+       xlab="Universo",ylab="Grados de pertenencia", 
+       type="l")
+  lines(sapply(muestra, trapezoidal) ~ muestra, col="blue")
+  lines(sapply(muestra, hombroDerecho) ~ muestra , col="red")
+}
+
+# Graficar conjunto difuso expectativa de vida saludable
+crearConjuntoDifusoDeTresVariables(expectativaMinima, expectativaMaxima)
+# Graficar conjutno difuso percepcion corrupcion
+crearConjuntoDifusoDeTresVariables(percepcionMinima, percepcionMaxima)
 
 
