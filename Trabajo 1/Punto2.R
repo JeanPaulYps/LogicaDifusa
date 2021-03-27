@@ -124,24 +124,25 @@ crearConjuntoDifusoDeTresVariables <- function(minimo, maximo, variable)
   hombroIzquierdo <- crearFuncionHombroIzquierdo(minimo, maximo)
   hombroDerecho <- crearFuncionHombroDerecho(minimo, maximo)
   
+  veintePorcientoDeTamano = (maximo-minimo)*0.2
   #Graficar los datos 
-  muestra = seq(minimo, maximo, length.out =1000)
+  muestra = seq(minimo - veintePorcientoDeTamano, maximo + veintePorcientoDeTamano, length.out =1000)
   # Graficacion de los conjuntos
   plot(sapply(muestra, hombroIzquierdo) ~ muestra,  main=paste("Grados de pertenencia al universo",variable),
        xlab=str_to_sentence(variable) ,ylab="Grados de pertenencia", 
        type="l", yaxt="none")
   axis(2,seq(0,1,length.out=11), las=2)
-  lines(sapply(muestra, trapezoidal) ~ muestra, col="blue")
-  lines(sapply(muestra, hombroDerecho) ~ muestra , col="red")
-  text(muestra[100], 1, "Poco")
-  text(muestra[500], .9, "Normal", col="blue")
-  text(muestra[900], 1, "Mucho", col="red" )
+  lines(sapply(muestra, trapezoidal) ~ muestra, col="#FFA500")
+  lines(sapply(muestra, hombroDerecho) ~ muestra , col="#6930c3")
+  text(muestra[200], 1, "Poco")
+  text(muestra[500], .9, "Normal", col="#FFA500")
+  text(muestra[800], 1, "Mucho", col="#6930c3" )
   abline(h=0.5, lty=2)
 }
 
 # Graficar conjunto difuso expectativa de vida saludable
 crearConjuntoDifusoDeTresVariables(expectativaMinima, expectativaMaxima, "expectativa de vida saludable")
-  # Graficar conjutno difuso percepcion corrupcion
+# Graficar conjutno difuso percepcion corrupcion
 crearConjuntoDifusoDeTresVariables(percepcionMinima, percepcionMaxima, "percepcion de corrupcion")
 
 
