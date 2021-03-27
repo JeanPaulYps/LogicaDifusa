@@ -1,4 +1,5 @@
 library("readxl")
+library(stringr)
 
 #Creacion de una funcion de hombro izquierdo
 leftShoulderFunction <- function(a1,a2)
@@ -79,7 +80,7 @@ percepcionCorrupcion <- datos$`Perceptions of corruption`
 expectativaMinima <- min(expectativa)
 expectativaMaxima <- max(expectativa)
 
-#Sacar los minimos y los maximos de la percepción de corrupcion
+#Sacar los minimos y los maximos de la percepci?n de corrupcion
 percepcionMinima <- min(percepcionCorrupcion)
 percepcionMaxima <- max(percepcionCorrupcion)
 
@@ -93,7 +94,7 @@ crearFuncionTrapezoidal <- function(minimo, maximo)
   # Pertenecen igual del tercer al cuarto intervalo
   # Los grados de pertencia decrecen del cuarto al ultimo intervalo
   limites <-  seq(minimo,maximo,length.out = 6)
-  trapezoidal <- trapezoidalFunction(limites[1], limites[3], limites[4], limites[6])
+  trapezoidal <- trapezoidalFunction(limites[1], limites[3], limites[4],limites[6])
   return(trapezoidal)
 }
 
@@ -101,8 +102,8 @@ crearFuncionHombroIzquierdo <- function(minimo, maximo)
 {
   #Crear hombro izquierdo desde que decrece 
   #del minimo hasta la mitad del intervalo
-  puntoMedio <- (minimo + maximo)/2
-  hombroIzquierdo <- leftShoulderFunction(minimo, puntoMedio)
+  limites <-  seq(minimo,maximo,length.out = 6)
+  hombroIzquierdo <- leftShoulderFunction(limites[1], limites[3])
   return(hombroIzquierdo)
 }
 
@@ -110,14 +111,14 @@ crearFuncionHombroDerecho <- function(minimo, maximo)
 {
   #Crear hombro derecho desde que crece 
   #mitad hasta el final del intervalo
-  puntoMedio <- (minimo + maximo)/2
-  hombroDerecho <- rightShoulderFunction(puntoMedio, maximo)
+  limites <-  seq(minimo,maximo,length.out = 6)
+  hombroDerecho <- rightShoulderFunction(limites[4], limites[6])
   return(hombroDerecho)
 }
 
 
 # Funcion para crear los conjuntos difusos 
-crearConjuntoDifusoDeTresVariables <- function(minimo, maximo)
+crearConjuntoDifusoDeTresVariables <- function(minimo, maximo, variable)
 {
   trapezoidal <- crearFuncionTrapezoidal(minimo, maximo)
   hombroIzquierdo <- crearFuncionHombroIzquierdo(minimo, maximo)
@@ -125,18 +126,36 @@ crearConjuntoDifusoDeTresVariables <- function(minimo, maximo)
   
   #Graficar los datos 
   muestra = seq(minimo, maximo, length.out =1000)
-  
   # Graficacion de los conjuntos
-  plot(sapply(muestra, hombroIzquierdo) ~ muestra,  main="Grados de pertenencia en el universo",
-       xlab="Universo",ylab="Grados de pertenencia", 
-       type="l")
+  plot(sapply(muestra, hombroIzquierdo) ~ muestra,  main=paste("Grados de pertenencia al universo",variable),
+       xlab=str_to_sentence(variable) ,ylab="Grados de pertenencia", 
+       type="l", yaxt="none")
+  axis(2,seq(0,1,length.out=11), las=2)
   lines(sapply(muestra, trapezoidal) ~ muestra, col="blue")
   lines(sapply(muestra, hombroDerecho) ~ muestra , col="red")
+  text(muestra[100], 1, "Poco")
+  text(muestra[500], .9, "Normal", col="blue")
+  text(muestra[900], 1, "Mucho", col="red" )
+  abline(h=0.5, lty=2)
 }
 
 # Graficar conjunto difuso expectativa de vida saludable
-crearConjuntoDifusoDeTresVariables(expectativaMinima, expectativaMaxima)
-# Graficar conjutno difuso percepcion corrupcion
-crearConjuntoDifusoDeTresVariables(percepcionMinima, percepcionMaxima)
+crearConjuntoDifusoDeTresVariables(expectativaMinima, expectativaMaxima, "expectativa de vida saludable")
+  # Graficar conjutno difuso percepcion corrupcion
+crearConjuntoDifusoDeTresVariables(percepcionMinima, percepcionMaxima, "percepcion de corrupcion")
+
+
+
+trapezoidal <- crearFuncionTrapezoidal(expectativaMinima, expectativaMaxima)
+hombroIzquierdo <- crearFuncionHombroIzquierdo(expectativaMinima, expectativaMaxima)
+
+puntoMedio <- expectativaMinima + (expectativaMaxima - expectativaMinima)*.2
+puntoMedio
+trapezoidal(puntoMedio)
+hombroIzquierdo(puntoMedio)
+
+
+
+
 
 
